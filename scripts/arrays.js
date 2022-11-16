@@ -14,7 +14,7 @@ const resultsContainer = document.querySelector("#filtered-results");
 
 function timeParity(cb) {
   setTimeout(() => {
-    let t = Date.now() / 1000;
+    let t = Math.floor(Date.now() / 1000);
     console.log("t", t);
     console.log("t", t % 2 === 1 ? "odd" : "even");
     cb(t % 2 === 1 ? "odd" : "even");
@@ -22,7 +22,7 @@ function timeParity(cb) {
 }
 
 function dataLocationFromParity(p) {
-  return locationOfData.replace('data.', `data-${p}.`);
+  return locationOfData.replace("data.", `data-${p}.`);
 }
 
 //callback version
@@ -37,17 +37,6 @@ const req = new XMLHttpRequest();
 req.addEventListener("load", reqListener);
 req.open("GET", locationOfData);
 req.send();
-
-// Use callbacks with XMLHttpRequest to:
-// get data.json (provided as “callback version”)
-//  for each course,
-//    get the detailed info about that course <prefix+number>.json
-//      log the detailed info
-//      get the timeParity
-//        get the data file corresponding to the timeParity (dataLocationFromParity can help)
-//        log the parity-text
-
-
 
 //promises version
 
@@ -92,12 +81,46 @@ const courseToCard = ({
   return courseTemplate;
 };
 
+function handleCourseDetails() {
+  console.log("handleCourseDetails");
+  const structuredData = JSON.parse(this.responseText);
+  console.log("detailed course info", structuredData);
+  data = structuredData;
+}
+
 function init() {
   filteredCourses = data.items;
   courseCards = data.items.map(courseToCard);
   filteredCourseCards = courseCards;
   resultsContainer.innerHTML = filteredCourseCards.join("");
   updateCount();
+
+  //  for each course,
+  for (let i = 0; i < filteredCourses.length; i++) {
+    //    get the detailed info about that course <prefix+number>.json
+    //      log the detailed info
+    let currentCourse = `${filteredCourses[i].prefix}${filteredCourses[i].number}.json`;
+    console.log("currentCourse", currentCourse);
+    const req = new XMLHttpRequest();
+    req.addEventListener("load", handleCourseDetails);
+    req.open("GET", currentCourse);
+    req.send();
+
+    let resultofTP;
+    timeParity((val) => {
+      console.log("val", val);
+      resultoftimeparity = val;
+    });
+
+    function gotPartiyFile(result) {
+      console.log("result", result)
+    }
+  }
+
+  //      get the timeParity
+  //        log the timeParity
+  //        get the data file corresponding to the timeParity (dataLocationFromParity can help)
+  //        log the parity-text
 }
 // courseCards.forEach((c) => document.write(c));
 
@@ -143,4 +166,3 @@ function updateCount() {
   const countValue = filteredCourses.length;
   count.innerText = `${countValue} items`;
 }
-
